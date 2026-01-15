@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.Win32;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -39,13 +40,20 @@ namespace WpfApp1
 
         private async void ButtonSearch_Click(object sender, RoutedEventArgs e)
         {
+            var searchLocation = SearchLocation.Text.ToString();
+            if (searchLocation == string.Empty)
+            {
+                MessageBox.Show("Empty Location, please fill location");
+                return;
+            }
+
             Files.Clear();
             SearchProgressBar.Visibility = Visibility.Visible;
             var selectedTypes = FileTypeOptions.Where(s => s.IsChecked == true).ToList();
 
             Progress<FileInfo> progress = new Progress<FileInfo>(file => Files.Add(file));
 
-            await Task.Run(() => _service.SearchForImages(selectedTypes, progress));
+            await Task.Run(() => _service.SearchForImages(selectedTypes, progress, searchLocation));
 
             SearchProgressBar.Visibility = Visibility.Hidden;
         }
@@ -90,6 +98,22 @@ namespace WpfApp1
                     MessageBox.Show(file.FullName);
                 }
             }
+
+        }
+
+        private void btnPickLocation_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFolderDialog dialog = new OpenFolderDialog();
+            var dialogResul = dialog.ShowDialog();
+
+            var selectedFolder = dialog.FolderName;
+
+            if (selectedFolder == string.Empty)
+            {
+                SearchLocation.Text = "empty"; return;
+            }
+
+            SearchLocation.Text = selectedFolder;
 
         }
     }

@@ -5,11 +5,11 @@ namespace WpfApp1.servives
 {
     public class SearchService
     {
-        public IProgress<FileInfo> SearchForImages(List<FileTypeChecker> selectedTypes, IProgress<FileInfo> progress)
+        public IProgress<FileInfo> SearchForImages(
+            List<FileTypeChecker> selectedTypes,
+            IProgress<FileInfo> progress,
+            string startFolder)
         {
-            string startFolder = @"C:\Users\Desktop-KW\Desktop\Foldery";
-
-
             var allowedExt = selectedTypes
                 .Select(s => "." + s.FileType.ToString().ToLower())
                 .ToHashSet();

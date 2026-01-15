@@ -10,7 +10,7 @@
         
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
@@ -19,16 +19,39 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
-        <Label HorizontalAlignment="Center">Files found</Label>
-        <ListBox Grid.Row="1" x:Name="FoundFiles" ItemsSource="{Binding Files}" DisplayMemberPath="Name" SelectionChanged="FoundFiles_SelectionChanged" />
-
+        <Label HorizontalAlignment="Center">
+            Files found
+        </Label>
+        
+        <ListBox 
+            Grid.Row="1" 
+            x:Name="FoundFiles" 
+            ItemsSource="{Binding Files}" 
+            DisplayMemberPath="Name" 
+            SelectionChanged="FoundFiles_SelectionChanged" />
+        
+        <Label
+            Grid.Column="1"
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            >
+                Location
+        </Label>
         <StackPanel 
             Width="auto" 
             Height="auto"
             Grid.Row="1" 
             Grid.Column="1" 
-            Margin="5,0,0,0">
+            Margin="5">
             
+
+
+            <TextBox 
+                HorizontalContentAlignment="Stretch"
+                Width="auto"
+                Height="20"
+                Margin="5"
+                x:Name="SearchLocation"/>
             <Label HorizontalAlignment="Center">
                 Formats
             </Label>
@@ -50,22 +73,31 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <Button x:Name="btnAdd" Margin="5,0,0,0" Click="ButtonSearch_Click">Scan for images</Button>
-            <Image
-                x:Name="PreviewImage"
-                Width="200"
-                Height="250"
-                Margin="10"/>
-
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" x:Name="btnPickLocation" Margin="5" Click="btnPickLocation_Click">Pick location</Button>
+                <Button Grid.Column="1" x:Name="btnScan" Margin="5" Click="ButtonSearch_Click">Scan for images</Button>
+            </Grid>
+            
             <ProgressBar 
                 x:Name="SearchProgressBar"
                 Visibility="Hidden"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
+                VerticalAlignment="Top"
                 IsIndeterminate="True"
                 Width="300"
                 Height="20"
                 Margin="5"/>
+            <Image
+                x:Name="PreviewImage"
+                Width="200"
+                Height="240"
+                Margin="10"/>
+
+
         </StackPanel>
     </Grid>
 </Window>
