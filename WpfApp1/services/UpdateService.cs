@@ -24,15 +24,21 @@ namespace WpfApp1.servives
         {
 
             BitmapImage bitmapImage = new BitmapImage();
-            bitmapImage.BeginInit();
+            try
+            {
+                bitmapImage.BeginInit();
 
-            var path = file.FullName.ToString();
+                var path = file.FullName.ToString();
 
-            bitmapImage.UriSource = new Uri(path);
-            bitmapImage.DecodePixelWidth = 200;
-            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-            bitmapImage.EndInit();
+                bitmapImage.UriSource = new Uri(path);
+                bitmapImage.DecodePixelWidth = 200;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+            }
+            catch (NotImplementedException)
+            {
 
+            }
             return bitmapImage;
         }
     }
