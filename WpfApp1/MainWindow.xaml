@@ -22,13 +22,21 @@
         <Label HorizontalAlignment="Center">
             Files found
         </Label>
-        
+
         <ListBox 
             Grid.Row="1" 
             x:Name="FoundFiles" 
             ItemsSource="{Binding Files}" 
+            SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
             DisplayMemberPath="Name" 
-            SelectionChanged="FoundFiles_SelectionChanged" />
+            SelectionChanged="FoundFiles_SelectionChanged"
+            HorizontalContentAlignment="Stretch">
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick" />
+                </Style>
+            </ListBox.Resources>
+        </ListBox>
         
         <Label
             Grid.Column="1"
@@ -93,6 +101,9 @@
                 Margin="5"/>
             <Image
                 x:Name="PreviewImage"
+                Source="{Binding PreviewSource}"
+                ToolTip="{Binding PreviewToolTip}"
+                Stretch="Uniform"
                 Width="200"
                 Height="240"
                 Margin="10"/>

@@ -1,0 +1,39 @@
+﻿using System.IO;
+using System.Windows.Media.Imaging;
+using WpfApp1.Domain.Dto;
+
+namespace WpfApp1.servives
+{
+    public class UpdateService
+    {
+        public PreviewDto Update(FileInfo? file)
+        {
+            PreviewDto result = new PreviewDto();
+            List<string> acceptableExtenstions = new List<string>
+            { ".png", ".jpeg", ".bmp", ".gif", ".jpg" };
+
+            if (acceptableExtenstions.Contains(file.Extension))
+            {
+                result.Image = ImagePreview(file);
+            }
+            result.ToolTip = file.ToString();
+
+            return result;
+        }
+        private BitmapImage ImagePreview(FileInfo file)
+        {
+
+            BitmapImage bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+
+            var path = file.FullName.ToString();
+
+            bitmapImage.UriSource = new Uri(path);
+            bitmapImage.DecodePixelWidth = 200;
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+            bitmapImage.EndInit();
+
+            return bitmapImage;
+        }
+    }
+}
