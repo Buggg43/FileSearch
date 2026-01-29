@@ -11,6 +11,7 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
@@ -19,12 +20,23 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
-        <Label HorizontalAlignment="Center">
-            Files found
+        <Label 
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Grid.Row="0"
+            Margin="0,0,0,0">
+            Filter files
         </Label>
+        <TextBox
+            x:Name="SearchBox"
+            TextChanged="SearchBox_TextChanged"
+            VerticalAlignment="Top"
+            Grid.Row="1"/>
 
-        <ListBox 
-            Grid.Row="1" 
+        <ListBox
+            Grid.Column="0"
+            Grid.Row="2"
+            VerticalAlignment="Stretch"
             x:Name="FoundFiles" 
             ItemsSource="{Binding Files}" 
             SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
@@ -37,34 +49,31 @@
                 </Style>
             </ListBox.Resources>
         </ListBox>
-        
+
         <Label
             Grid.Column="1"
             Grid.Row="0"
-            HorizontalAlignment="Center"
-            >
+            HorizontalAlignment="Center">
                 Location
         </Label>
+        <TextBox 
+                Grid.Column="1"
+                Grid.Row="1"
+                HorizontalContentAlignment="Stretch"
+                x:Name="SearchLocation"/>
+        
         <StackPanel 
             Width="auto" 
             Height="auto"
-            Grid.Row="1" 
-            Grid.Column="1" 
-            Margin="5">
-            
+            Grid.Row="2" 
+            Grid.Column="1">
 
-
-            <TextBox 
-                HorizontalContentAlignment="Stretch"
-                Width="auto"
-                Height="20"
-                Margin="5"
-                x:Name="SearchLocation"/>
             <Label HorizontalAlignment="Center">
                 Formats
             </Label>
             
-            <ItemsControl ItemsSource="{Binding FileTypeOptions}">
+            <ItemsControl 
+                ItemsSource="{Binding FileTypeOptions}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -99,6 +108,7 @@
                 Width="300"
                 Height="20"
                 Margin="5"/>
+            
             <Image
                 x:Name="PreviewImage"
                 Source="{Binding PreviewSource}"

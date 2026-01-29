@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using WpfApp1.Domain;
 using WpfApp1.servives;
@@ -22,6 +23,8 @@ namespace WpfApp1
         private ObservableCollection<FileTypeChecker> fileTypeOptions;
         private FileInfo selectedFile;
         private readonly UpdateService _update;
+        private ICollectionView _filesView;
+        private string _searchText = "";
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -60,23 +63,44 @@ namespace WpfApp1
             }
         }
         public ObservableCollection<FileInfo> Files { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
             Files = new ObservableCollection<FileInfo>();
+            _filesView = CollectionViewSource.GetDefaultView(Files);
+            _filesView.Filter = FilterFiles;
             _service = new SearchService();
             _update = new UpdateService();
             PopulateList();
         }
+        private void PopulateList()
+        {
+            ObservableCollection<FileTypeChecker> typeCheckers = new ObservableCollection<FileTypeChecker>();
+            var Types = Enum.GetValues<FileTypeEnum>();
+            foreach (var type in Types)
+            {
+                typeCheckers.Add(new() { FileType = type, IsChecked = false });
+            }
+            FileTypeOptions = typeCheckers;
+        }
+        private bool FilterFiles(object obj)
+        {
+            if (obj is not FileInfo f) return false;
+            if (string.IsNullOrWhiteSpace(_searchText)) return true;
 
+            var q = _searchText.Trim();
+
+            return f.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || f.FullName.Contains(q, StringComparison.OrdinalIgnoreCase);
+        }
         private async void ButtonSearch_Click(object sender, RoutedEventArgs e)
         {
             var searchLocation = SearchLocation.Text.ToString();
             if (searchLocation == string.Empty)
             {
-                MessageBox.Show("Empty Location, please fill location");
-                return;
+                searchLocation = @"C:\";
             }
 
             Files.Clear();
@@ -89,17 +113,6 @@ namespace WpfApp1
 
             SearchProgressBar.Visibility = Visibility.Hidden;
         }
-        private void PopulateList()
-        {
-            ObservableCollection<FileTypeChecker> typeCheckers = new ObservableCollection<FileTypeChecker>();
-            var Types = Enum.GetValues<FileTypeEnum>();
-            foreach (var type in Types)
-            {
-                typeCheckers.Add(new() { FileType = type, IsChecked = false });
-            }
-            FileTypeOptions = typeCheckers;
-        }
-
         private void FoundFiles_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             //List<string> acceptableExtenstions = new List<string> { ".png", ".jpeg", ".bmp", ".gif", ".jpg" };
@@ -164,6 +177,12 @@ namespace WpfApp1
         private void OnPropertyChange([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _searchText = SearchBox.Text;
+            _filesView.Refresh();
         }
     }
 }
