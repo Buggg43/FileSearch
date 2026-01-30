@@ -10,6 +10,8 @@ namespace WpfApp1.servives
             IProgress<FileInfo> progress,
             string startFolder)
         {
+
+
             var allowedExt = selectedTypes
                 .Select(s => "." + s.FileType.ToString().ToLower())
                 .ToHashSet();

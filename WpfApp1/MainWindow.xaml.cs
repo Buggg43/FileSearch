@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using WpfApp1.Domain;
 using WpfApp1.servives;
 
@@ -25,6 +26,7 @@ namespace WpfApp1
         private readonly UpdateService _update;
         private ICollectionView _filesView;
         private string _searchText = "";
+        private DispatcherTimer _dispatcherTimer;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -73,6 +75,11 @@ namespace WpfApp1
             _filesView.Filter = FilterFiles;
             _service = new SearchService();
             _update = new UpdateService();
+            _dispatcherTimer = new DispatcherTimer();
+
+            _dispatcherTimer.Interval = TimeSpan.FromMilliseconds(300);
+            _dispatcherTimer.Tick += OnTimedEvent;
+
             PopulateList();
         }
         private void PopulateList()
@@ -113,39 +120,11 @@ namespace WpfApp1
 
             SearchProgressBar.Visibility = Visibility.Hidden;
         }
-        private void FoundFiles_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void OnTimedEvent(object sender, EventArgs e)
         {
-            //List<string> acceptableExtenstions = new List<string> { ".png", ".jpeg", ".bmp", ".gif", ".jpg" };
-            //var file = FoundFiles.SelectedItem as FileInfo;
-            //if (file == null)
-            //{
-            //    return;
-            //}
-            //else if (acceptableExtenstions.Contains(file.Extension))
-            //{
-            //    try
-            //    {
-            //        BitmapImage bitmapImage = new BitmapImage();
-            //        bitmapImage.BeginInit();
-
-            //        var path = file.FullName.ToString();
-
-            //        bitmapImage.UriSource = new Uri(path);
-            //        bitmapImage.DecodePixelWidth = 200;
-            //        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-            //        bitmapImage.EndInit();
-
-            //        PreviewImage.Source = bitmapImage;
-            //    }
-            //    catch (NotSupportedException)
-            //    {
-            //        PreviewImage.Source = null;
-            //        MessageBox.Show(file.FullName);
-            //    }
-            //}
-
+            _dispatcherTimer.Stop();
+            _filesView.Refresh();
         }
-
         private void btnPickLocation_Click(object sender, RoutedEventArgs e)
         {
             OpenFolderDialog dialog = new OpenFolderDialog();
@@ -181,8 +160,9 @@ namespace WpfApp1
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            _dispatcherTimer.Stop();
             _searchText = SearchBox.Text;
-            _filesView.Refresh();
+            _dispatcherTimer.Start();
         }
     }
 }
