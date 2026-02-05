@@ -41,7 +41,6 @@
             ItemsSource="{Binding Files}" 
             SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
             DisplayMemberPath="Name" 
-            SelectionChanged="FoundFiles_SelectionChanged"
             HorizontalContentAlignment="Stretch">
             <ListBox.Resources>
                 <Style TargetType="ListBoxItem">

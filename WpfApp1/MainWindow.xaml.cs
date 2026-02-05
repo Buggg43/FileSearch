@@ -104,19 +104,13 @@ namespace WpfApp1
         }
         private async void ButtonSearch_Click(object sender, RoutedEventArgs e)
         {
-            var searchLocation = SearchLocation.Text.ToString();
-            if (searchLocation == string.Empty)
-            {
-                searchLocation = @"C:\";
-            }
-
             Files.Clear();
             SearchProgressBar.Visibility = Visibility.Visible;
             var selectedTypes = FileTypeOptions.Where(s => s.IsChecked == true).ToList();
 
             Progress<FileInfo> progress = new Progress<FileInfo>(file => Files.Add(file));
 
-            await Task.Run(() => _service.SearchForImages(selectedTypes, progress, searchLocation));
+            await Task.Run(() => _service.SearchFiles(_searchText, progress));
 
             SearchProgressBar.Visibility = Visibility.Hidden;
         }
@@ -164,5 +158,6 @@ namespace WpfApp1
             _searchText = SearchBox.Text;
             _dispatcherTimer.Start();
         }
+
     }
 }
