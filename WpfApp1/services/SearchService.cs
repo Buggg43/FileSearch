@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Search.Domain.Dto;
+using System.IO;
 using WpfApp1.Domain;
 
 namespace WpfApp1.servives
@@ -9,52 +10,50 @@ namespace WpfApp1.servives
             string userInput,
             IProgress<FileInfo> progress)
         {
-            var userInputType = userInput
-                .Split(";", 2, StringSplitOptions.RemoveEmptyEntries);
-
-            var userFileSearch = userInputType[0]
-                .ToString();
-
-            string userSelectedExt = "";
-            List<string> selectedExt = new List<string>();
-            if (userInputType.Length == 1)
-            {
-                userSelectedExt = userInputType[1];
-                var selectedTypes = FileTypeParser(userSelectedExt);
-
-                selectedExt = selectedTypes
-                    .Select(s => s.FileType.ToString().ToLower())
-                    .ToList();
-            }
+            var selectedInput = FIleParser(userInput);
 
             var drivers = DriveInfo.GetDrives();
+            List<Task> tasks = new List<Task>();
             foreach (var drive in drivers)
             {
-                Task.Run(() => RunSearch(progress, drive.RootDirectory.ToString(), userFileSearch, selectedExt));
+                tasks.Add(Task.Run(() => RunSearch(
+                    progress, drive.RootDirectory.ToString(), selectedInput)));
             }
-            await Task.WhenAll();
+            await Task.WhenAll(tasks);
             return progress;
         }
-        private List<FileTypeChecker> FileTypeParser(string input)
+        private UserParsedInput FIleParser(string input)
         {
-            var splitInput = input
-                .ToUpper()
+            var userInputType = input
+                .Split(";", 2, StringSplitOptions.RemoveEmptyEntries);
+
+            var fileExtensions = userInputType
+                .Where(s => s.StartsWith("."))
+                .ToString();
+
+            var fileName = userInputType
+                .Where(s => !s.StartsWith("."))
+                .ToString();
+
+            var splitInput = fileExtensions
+                .ToLower()
                 .Split(",", StringSplitOptions.RemoveEmptyEntries)
                 .ToList();
 
-            List<FileTypeChecker> selectedTypes = new List<FileTypeChecker>();
+            UserParsedInput userParsedInput = new UserParsedInput();
 
             foreach (var format in splitInput)
             {
                 if (Enum.TryParse<FileTypeEnum>(format, out var fileTypeEnum))
                 {
-                    selectedTypes.Add(new FileTypeChecker { FileType = fileTypeEnum, IsChecked = true });
+                    userParsedInput.Extensions.Add(fileTypeEnum.ToString().Insert(0, "."));
                 }
             }
-            return selectedTypes;
+            userParsedInput.QueryText = fileName;
+            return userParsedInput;
         }
         private IProgress<FileInfo> RunSearch(IProgress<FileInfo> progress,
-            string startFolder, string userFileSearch, List<string> selectedExtensions)
+            string startFolder, UserParsedInput userParsedInput)
         {
             var stack = new Stack<DirectoryInfo>();
             stack.Push(new DirectoryInfo(startFolder));
@@ -65,17 +64,17 @@ namespace WpfApp1.servives
                 {
                     foreach (var file in dir.EnumerateFiles("*.*"))
                     {
-                        if (selectedExtensions != null)
+                        if (userParsedInput.Extensions.Count > 0)
                         {
-                            if (selectedExtensions.Equals(file.Extension) &&
-                            file.Name.Contains(userFileSearch, StringComparison.OrdinalIgnoreCase))
+                            if (userParsedInput.Extensions.Select(s => "." + userParsedInput.Extensions).Contains(file.Extension) &&
+                            file.Name.Contains(userParsedInput.QueryText, StringComparison.OrdinalIgnoreCase))
                             {
                                 progress.Report(file);
                             }
                         }
                         else
                         {
-                            if (file.Name.Contains(userFileSearch, StringComparison.OrdinalIgnoreCase))
+                            if (file.Name.Contains(userParsedInput.QueryText, StringComparison.OrdinalIgnoreCase))
                             {
                                 progress.Report(file);
                             }

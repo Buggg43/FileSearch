@@ -3,47 +3,59 @@
     public enum FileTypeEnum
     {
         // Image
-        PNG,
-        JPG,
-        JPEG,
-        BMP,
-        GIF,
-        TIFF,
-        TIF,
-        WEBP,
-        PSD,   // Photoshop
-        XCF,   // GIMP
-        AI,    // Adobe Illustrator
-        EPS,   // Vector
-        SVG,    // Vector (XML)
+        png,
+        jpg,
+        jpeg,
+        bmp,
+        gif,
+        tiff,
+        tif,
+        webp,
+        psd,   // Photoshop
+        xcf,   // GIMP
+        ai,    // Adobe Illustrator
+        eps,   // Vector
+        svg,   // Vector (XML)
+        ico,
+        heic,
+        raw,
 
-        // DOCS enums
-
-        PDF,
-        DOC,
-        DOCX,
-        XLS,
-        XLSX,
-        PPT,
-        PPTX,
-        TXT,
+        // Docs enums
+        pdf,
+        doc,
+        docx,
+        xls,
+        xlsx,
+        ppt,
+        pptx,
+        txt,
+        rtf,
+        odt,
+        ods,
+        odp,
+        csv,
+        md,
 
         // Media enums
+        mp3,
+        wav,
+        flac,
+        aac,
+        ogg,
+        mp4,
+        avi,
+        mkv,
+        mov,
+        wmv,
+        webm,
 
-        MP3,
-        WAV,
-        FLAC,
-        MP4,
-        AVI,
-        MKV,
-
-        // archives enums
-
-        ZIP,
-        RAR,
-        SevenZ,
-        TAR,
-        GZ
-
+        // Archives enums
+        zip,
+        rar,
+        sevenz,
+        tar,
+        gz,
+        bz2,
+        xz
     }
 }
