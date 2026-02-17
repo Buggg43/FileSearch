@@ -2,7 +2,7 @@
 {
     public class UserParsedInput
     {
-        public string? QueryText { get; set; }
-        public List<string>? Extensions { get; set; }
+        public List<string>? QueryText { get; set; }
+        public HashSet<string>? Extensions { get; set; }
     }
 }

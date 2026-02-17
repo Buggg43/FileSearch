@@ -1,6 +1,5 @@
 ﻿using Search.Domain.Dto;
 using System.IO;
-using WpfApp1.Domain;
 
 namespace WpfApp1.servives
 {
@@ -25,31 +24,24 @@ namespace WpfApp1.servives
         private UserParsedInput FIleParser(string input)
         {
             var userInputType = input
-                .Split(";", 2, StringSplitOptions.RemoveEmptyEntries);
+                .Split(";", StringSplitOptions.RemoveEmptyEntries);
 
             var fileExtensions = userInputType
-                .Where(s => s.StartsWith("."))
-                .ToString();
+                .Where(s => s.Trim().StartsWith("."))
+                .SelectMany(s => s.ToLower().Split(",", StringSplitOptions.RemoveEmptyEntries))
+                .Select(s => s.Trim())
+                .ToHashSet();
 
             var fileName = userInputType
-                .Where(s => !s.StartsWith("."))
-                .ToString();
-
-            var splitInput = fileExtensions
-                .ToLower()
-                .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                .Where(s => !s.Trim().StartsWith("."))
+                .SelectMany(s => s.Split(" ", StringSplitOptions.RemoveEmptyEntries))
                 .ToList();
 
             UserParsedInput userParsedInput = new UserParsedInput();
 
-            foreach (var format in splitInput)
-            {
-                if (Enum.TryParse<FileTypeEnum>(format, out var fileTypeEnum))
-                {
-                    userParsedInput.Extensions.Add(fileTypeEnum.ToString().Insert(0, "."));
-                }
-            }
+            userParsedInput.Extensions = fileExtensions;
             userParsedInput.QueryText = fileName;
+
             return userParsedInput;
         }
         private IProgress<FileInfo> RunSearch(IProgress<FileInfo> progress,
@@ -64,21 +56,12 @@ namespace WpfApp1.servives
                 {
                     foreach (var file in dir.EnumerateFiles("*.*"))
                     {
-                        if (userParsedInput.Extensions.Count > 0)
-                        {
-                            if (userParsedInput.Extensions.Select(s => "." + userParsedInput.Extensions).Contains(file.Extension) &&
-                            file.Name.Contains(userParsedInput.QueryText, StringComparison.OrdinalIgnoreCase))
-                            {
-                                progress.Report(file);
-                            }
-                        }
-                        else
-                        {
-                            if (file.Name.Contains(userParsedInput.QueryText, StringComparison.OrdinalIgnoreCase))
-                            {
-                                progress.Report(file);
-                            }
-                        }
+                        bool extensionMatch = userParsedInput.Extensions.Count == 0 || userParsedInput.Extensions.Contains(file.Extension.ToLower());
+
+                        bool nameMatch = userParsedInput.QueryText.Count == 0 ? true : userParsedInput.QueryText.All(t => file.Name.Contains(t, StringComparison.OrdinalIgnoreCase));
+
+                        if (extensionMatch && nameMatch)
+                            progress.Report(file);
                     }
                     foreach (var subDir in dir.EnumerateDirectories())
                     {
