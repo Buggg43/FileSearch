@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Search.services;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -23,6 +24,7 @@ namespace WpfApp1
         private readonly SearchService _service;
         private ObservableCollection<FileTypeChecker> fileTypeOptions;
         private FileInfo selectedFile;
+        private FileParserService _fileParser;
         private readonly UpdateService _update;
         private ICollectionView _filesView;
         private string _searchText = "";
@@ -73,7 +75,8 @@ namespace WpfApp1
             Files = new ObservableCollection<FileInfo>();
             _filesView = CollectionViewSource.GetDefaultView(Files);
             _filesView.Filter = FilterFiles;
-            _service = new SearchService();
+            _fileParser = new FileParserService();
+            _service = new SearchService(_fileParser);
             _update = new UpdateService();
             _dispatcherTimer = new DispatcherTimer();
 
