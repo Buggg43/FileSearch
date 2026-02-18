@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -7,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using WpfApp1.Domain;
@@ -119,21 +119,6 @@ namespace WpfApp1
             _dispatcherTimer.Stop();
             _filesView.Refresh();
         }
-        private void btnPickLocation_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFolderDialog dialog = new OpenFolderDialog();
-            var dialogResul = dialog.ShowDialog();
-
-            var selectedFolder = dialog.FolderName;
-
-            if (selectedFolder == string.Empty)
-            {
-                SearchLocation.Text = "empty"; return;
-            }
-
-            SearchLocation.Text = selectedFolder;
-
-        }
 
         private void ListBoxItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -159,5 +144,79 @@ namespace WpfApp1
             _dispatcherTimer.Start();
         }
 
+        private void Window_GotFocus(object sender, RoutedEventArgs e)
+        {
+            SearchBox.Focus();
+        }
+
+        private void SearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            var key = e.Key;
+            if (key == Key.Up && 0 < FoundFiles.SelectedIndex && FoundFiles.Items.Count > 0)
+            {
+                e.Handled = true;
+                FoundFiles.SelectedIndex--;
+                FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
+            }
+            else if (key == Key.Down && FoundFiles.Items.Count > 0)
+            {
+                if (FoundFiles.SelectedIndex == -1)
+                {
+                    e.Handled = true;
+                    FoundFiles.SelectedIndex = 0;
+                    FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
+                }
+                else if (FoundFiles.Items.Count - 1 > FoundFiles.SelectedIndex)
+                {
+                    e.Handled = true;
+                    FoundFiles.SelectedIndex++;
+                    FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
+                }
+            }
+            else if (key == Key.Enter)
+            {
+                if (FoundFiles.Items.Count > 0)
+                {
+                    e.Handled = true;
+                    if (FoundFiles.SelectedIndex == -1)
+                    {
+                        FoundFiles.SelectedIndex = 0;
+                        FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
+                    }
+                    if (FoundFiles.SelectedItem is FileInfo file)
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            OpenFileFolder(file);
+                        }
+
+                        else
+                        {
+                            OpenFile(file);
+                        }
+                    }
+
+                }
+            }
+        }
+        private void OpenFile(FileInfo file)
+        {
+            var process = new ProcessStartInfo()
+            {
+                FileName = file.FullName,
+                UseShellExecute = true
+            };
+            Process.Start(process);
+        }
+        private void OpenFileFolder(FileInfo file)
+        {
+            var process = new ProcessStartInfo()
+            {
+                FileName = "explorer.exe",
+                Arguments = $"/select,\"{file.FullName}\"",
+                UseShellExecute = true
+            };
+            Process.Start(process);
+        }
     }
 }
