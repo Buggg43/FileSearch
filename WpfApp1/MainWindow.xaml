@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
+        WindowStyle="None"
         Title="QuickSearch" Height="350" Width="600"
         Background="#1E1E1E"
         BorderBrush="#3A3D44"

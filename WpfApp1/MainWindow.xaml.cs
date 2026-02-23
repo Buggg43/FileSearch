@@ -76,7 +76,7 @@ namespace WpfApp1
             _filesView = CollectionViewSource.GetDefaultView(Files);
             _filesView.Filter = FilterFiles;
             _fileParser = new FileParserService();
-            _service = new SearchService(_fileParser);
+            _service = new SearchService();
             _update = new UpdateService();
             _dispatcherTimer = new DispatcherTimer();
 
@@ -113,7 +113,7 @@ namespace WpfApp1
 
             Progress<FileInfo> progress = new Progress<FileInfo>(file => Files.Add(file));
 
-            await Task.Run(() => _service.SearchFiles(_searchText, progress));
+            await Task.Run(() => _service.SearchFiles());
 
             SearchProgressBar.Visibility = Visibility.Hidden;
         }
@@ -191,11 +191,13 @@ namespace WpfApp1
                         if (Keyboard.Modifiers == ModifierKeys.Control)
                         {
                             OpenFileFolder(file);
+                            this.Close();
                         }
 
                         else
                         {
                             OpenFile(file);
+                            this.Close();
                         }
                     }
 

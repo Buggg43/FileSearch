@@ -1,10 +1,8 @@
-﻿using System.IO;
-
-namespace Search.Domain
+﻿namespace Search.Domain
 {
     public class FileCache
     {
-        public List<FileInfo> FileIndex { get; set; }
+        public List<IndexedFile> FileIndex { get; set; } = new List<IndexedFile>();
         public DateTime IndexBuildAt { get; set; }
     }
 }
