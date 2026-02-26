@@ -2,7 +2,7 @@
 {
     public class FileCache
     {
-        public List<IndexedFile> FileIndex { get; set; } = new List<IndexedFile>();
+        public List<IndexedFile> FileIndex { get; set; } = new();
         public DateTime IndexBuildAt { get; set; }
     }
 }

@@ -12,6 +12,20 @@ namespace Search.services
         {
             _searchService = searchService;
         }
+        public async Task<FileCache?> LoadOrBuildAsync()
+        {
+            var result = await TryLoadIndexFromDisk();
+            if (result.FileIndex.Count > 0)
+            {
+                return result;
+            }
+            else
+            {
+                var newIndex = await BuildIndexAsync();
+                await SaveIndexToDisk(newIndex);
+                return newIndex;
+            }
+        }
         public async Task<FileCache> BuildIndexAsync()
         {
             var result = await _searchService.SearchFiles();
@@ -32,7 +46,7 @@ namespace Search.services
             };
             return fileCache;
         }
-        public async Task<FileCache> LoadIndexFromDisk()
+        public async Task<FileCache?> TryLoadIndexFromDisk()
         {
             string path = "C:\\Users\\Desktop-KW\\source\\repos\\WpfApp1\\WpfApp1\\FileCashe.json";
             string result = "";
@@ -44,40 +58,62 @@ namespace Search.services
             {
                 return new FileCache
                 {
-                    FileIndex = new List<IndexedFile>(),
                     IndexBuildAt = DateTime.UtcNow
                 };
             }
-            if (result != string.Empty)
+            if (string.IsNullOrEmpty(result))
             {
                 return new FileCache
                 {
-                    FileIndex = new List<IndexedFile>(),
                     IndexBuildAt = DateTime.UtcNow
                 };
             }
-
-            var deserializedCache = JsonSerializer.Deserialize<FileCache>(result);
-
-            if (deserializedCache.FileIndex.Count > 0)
+            FileCache? deserializedCache = null;
+            try
             {
-                return new FileCache { FileIndex = deserializedCache.FileIndex, IndexBuildAt = deserializedCache.IndexBuildAt };
+                deserializedCache = JsonSerializer.Deserialize<FileCache>(result);
             }
-
-            return new FileCache
+            catch (JsonException)
             {
-                FileIndex = new List<IndexedFile>(),
-                IndexBuildAt = DateTime.UtcNow
-            };
+                return new FileCache
+                {
+                    IndexBuildAt = DateTime.UtcNow
+                };
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return new FileCache
+                {
+                    IndexBuildAt = DateTime.UtcNow
+                };
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new FileCache
+                {
+                    IndexBuildAt = DateTime.UtcNow
+                };
+            }
+            if (deserializedCache == null)
+            {
+                return new FileCache() { IndexBuildAt = DateTime.UtcNow };
+            }
+            else
+                return deserializedCache;
         }
-        public async Task SaveIndexToDisk(List<FileCache> fileCache)
+        public async Task SaveIndexToDisk(FileCache fileCache)
         {
             string path = "C:\\Users\\Desktop-KW\\source\\repos\\WpfApp1\\WpfApp1\\FileCashe.json";
             string tempPath = path + ".tmp";
+            string backupPath = "C:\\Users\\Desktop-KW\\source\\repos\\WpfApp1\\WpfApp1\\ReplacedFilesBackup.json";
             string json = JsonSerializer.Serialize(fileCache);
 
             await File.WriteAllTextAsync(tempPath, json);
-            File.Move(tempPath, path);
+
+            if (File.Exists(path))
+                File.Replace(tempPath, path, backupPath);
+            else
+                File.Move(tempPath, path);
         }
     }
 }
