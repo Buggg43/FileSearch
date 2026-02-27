@@ -26,6 +26,7 @@ namespace WpfApp1
             services.AddSingleton<IndexService>();
             services.AddSingleton<FileCache>();
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<FilteringService>();
         }
         private void ShowMainWindow()
         {

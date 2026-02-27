@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using Search.Domain;
 using System.Windows.Media.Imaging;
 using WpfApp1.Domain.Dto;
 
@@ -6,7 +6,7 @@ namespace WpfApp1.servives
 {
     public class UpdateService
     {
-        public PreviewDto Update(FileInfo? file)
+        public PreviewDto Update(IndexedFile? file)
         {
             PreviewDto result = new PreviewDto();
             List<string> acceptableExtenstions = new List<string>
@@ -20,7 +20,7 @@ namespace WpfApp1.servives
 
             return result;
         }
-        private BitmapImage ImagePreview(FileInfo file)
+        private BitmapImage ImagePreview(IndexedFile file)
         {
 
             BitmapImage bitmapImage = new BitmapImage();
@@ -28,7 +28,7 @@ namespace WpfApp1.servives
             {
                 bitmapImage.BeginInit();
 
-                var path = file.FullName.ToString();
+                var path = file.FullPath.ToString();
 
                 bitmapImage.UriSource = new Uri(path);
                 bitmapImage.DecodePixelWidth = 200;

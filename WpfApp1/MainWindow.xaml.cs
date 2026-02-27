@@ -1,17 +1,12 @@
-﻿using Search.services;
+﻿using Search.Domain;
+using Search.services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using WpfApp1.Domain;
-using WpfApp1.servives;
 
 namespace WpfApp1
 {
@@ -21,207 +16,90 @@ namespace WpfApp1
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public Uri Path;
-        private readonly SearchService _service;
-        private ObservableCollection<FileTypeChecker> fileTypeOptions;
-        private FileInfo selectedFile;
-        private FileParserService _fileParser;
-        private readonly UpdateService _update;
-        private ICollectionView _filesView;
         private string _searchText = "";
         private DispatcherTimer _dispatcherTimer;
+        private readonly FilteringService _filteringService;
+        private int _searchVersion;
+
+        public ObservableCollection<IndexedFile> Results { get; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
         public BitmapImage PreviewSource { get; set; } = null;
         public string PreviewToolTip { get; set; } = "";
-        public FileInfo SelectedFile
-        {
-            get
-            {
-                return selectedFile;
-            }
-            set
-            {
-                selectedFile = value;
-                var result = _update.Update(value);
-                if (result.Image != null)
-                    PreviewSource = result.Image;
-                else
-                    PreviewSource = null;
-
-                PreviewToolTip = result.ToolTip;
-
-                OnPropertyChange(nameof(PreviewSource));
-                OnPropertyChange(nameof(PreviewToolTip));
-            }
-        }
-        public ObservableCollection<FileTypeChecker> FileTypeOptions
-        {
-            get
-            {
-                return fileTypeOptions;
-            }
-            set
-            {
-                fileTypeOptions = value;
-            }
-        }
-        public ObservableCollection<FileInfo> Files { get; set; }
-
-        public MainWindow()
+        public MainWindow(FilteringService filteringService)
         {
             InitializeComponent();
             DataContext = this;
-            Files = new ObservableCollection<FileInfo>();
-            _filesView = CollectionViewSource.GetDefaultView(Files);
-            _filesView.Filter = FilterFiles;
-            _fileParser = new FileParserService();
-            _service = new SearchService();
-            _update = new UpdateService();
+            Results = new ObservableCollection<IndexedFile>();
             _dispatcherTimer = new DispatcherTimer();
+            _filteringService = filteringService;
 
             _dispatcherTimer.Interval = TimeSpan.FromMilliseconds(300);
             _dispatcherTimer.Tick += OnTimedEvent;
-
-            PopulateList();
         }
-        private void PopulateList()
-        {
-            ObservableCollection<FileTypeChecker> typeCheckers = new ObservableCollection<FileTypeChecker>();
-            var Types = Enum.GetValues<FileTypeEnum>();
-            foreach (var type in Types)
-            {
-                typeCheckers.Add(new() { FileType = type, IsChecked = false });
-            }
-            FileTypeOptions = typeCheckers;
-        }
-        private bool FilterFiles(object obj)
-        {
-            if (obj is not FileInfo f) return false;
-            if (string.IsNullOrWhiteSpace(_searchText)) return true;
-
-            var q = _searchText.Trim();
-
-            return f.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
-                || f.FullName.Contains(q, StringComparison.OrdinalIgnoreCase);
-        }
-        private async void ButtonSearch_Click(object sender, RoutedEventArgs e)
-        {
-            Files.Clear();
-            SearchProgressBar.Visibility = Visibility.Visible;
-            var selectedTypes = FileTypeOptions.Where(s => s.IsChecked == true).ToList();
-
-            Progress<FileInfo> progress = new Progress<FileInfo>(file => Files.Add(file));
-
-            await Task.Run(() => _service.SearchFiles());
-
-            SearchProgressBar.Visibility = Visibility.Hidden;
-        }
-        private void OnTimedEvent(object sender, EventArgs e)
-        {
-            _dispatcherTimer.Stop();
-            _filesView.Refresh();
-        }
-
+        //Actions
         private void ListBoxItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var item = (ListBoxItem)sender;
-            var file = item.DataContext as FileInfo;
+            var file = item.DataContext as IndexedFile;
             if (file == null) return;
 
             Process.Start(new ProcessStartInfo
             {
-                FileName = file.FullName,
+                FileName = file.FullPath,
                 UseShellExecute = true
             });
         }
-        private void OnPropertyChange([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             _dispatcherTimer.Stop();
             _searchText = SearchBox.Text;
             _dispatcherTimer.Start();
         }
-
         private void Window_GotFocus(object sender, RoutedEventArgs e)
         {
             SearchBox.Focus();
         }
-
-        private void SearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            var key = e.Key;
-            if (key == Key.Up && 0 < FoundFiles.SelectedIndex && FoundFiles.Items.Count > 0)
-            {
-                e.Handled = true;
-                FoundFiles.SelectedIndex--;
-                FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
-            }
-            else if (key == Key.Down && FoundFiles.Items.Count > 0)
-            {
-                if (FoundFiles.SelectedIndex == -1)
-                {
-                    e.Handled = true;
-                    FoundFiles.SelectedIndex = 0;
-                    FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
-                }
-                else if (FoundFiles.Items.Count - 1 > FoundFiles.SelectedIndex)
-                {
-                    e.Handled = true;
-                    FoundFiles.SelectedIndex++;
-                    FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
-                }
-            }
-            else if (key == Key.Enter)
-            {
-                if (FoundFiles.Items.Count > 0)
-                {
-                    e.Handled = true;
-                    if (FoundFiles.SelectedIndex == -1)
-                    {
-                        FoundFiles.SelectedIndex = 0;
-                        FoundFiles.ScrollIntoView(FoundFiles.SelectedItem);
-                    }
-                    if (FoundFiles.SelectedItem is FileInfo file)
-                    {
-                        if (Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            OpenFileFolder(file);
-                            this.Close();
-                        }
-
-                        else
-                        {
-                            OpenFile(file);
-                            this.Close();
-                        }
-                    }
-
-                }
-            }
-        }
-        private void OpenFile(FileInfo file)
+        //Methods
+        /*private void OpenFile(IndexedFile file)
         {
             var process = new ProcessStartInfo()
             {
-                FileName = file.FullName,
+                FileName = file.FullPath,
                 UseShellExecute = true
             };
             Process.Start(process);
         }
-        private void OpenFileFolder(FileInfo file)
+        private void OpenFileFolder(IndexedFile file)
         {
             var process = new ProcessStartInfo()
             {
                 FileName = "explorer.exe",
-                Arguments = $"/select,\"{file.FullName}\"",
+                Arguments = $"/select,\"{file.FullPath}\"",
                 UseShellExecute = true
             };
             Process.Start(process);
+        }*/
+        private async Task FilteredFiles(FilteringService filteringService, string searchQuery, int Version)
+        {
+            var result = await filteringService.FilterResults(searchQuery);
+            if (Version == _searchVersion)
+            {
+                Results.Clear();
+                foreach (var r in result.Take(200))
+                {
+                    Results.Add(r);
+                }
+            }
+        }
+        private async void OnTimedEvent(object? sender, EventArgs e)
+        {
+            _dispatcherTimer.Stop();
+            _searchVersion++;
+            var query = _searchText;
+            var currentSearch = _searchVersion;
+
+            await FilteredFiles(_filteringService, query, currentSearch);
         }
     }
 }
