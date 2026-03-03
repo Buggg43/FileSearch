@@ -23,6 +23,7 @@ namespace Search.services
                     (queryTexts.Count == 0 || queryTexts.All(q => file.Name.Contains(q, StringComparison.OrdinalIgnoreCase))) &&
                     (extensions == null || extensions.Count == 0 || extensions.Contains(file.Extension, StringComparer.OrdinalIgnoreCase))
                 )
+                .Take(200)
                 .ToList();
 
             await Task.Yield();

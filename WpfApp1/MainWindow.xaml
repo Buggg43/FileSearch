@@ -6,15 +6,26 @@
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
         WindowStyle="None"
-        Title="QuickSearch" Height="350" Width="600"
+        Title="QuickSearch" 
+        MaxHeight="350" 
+        Width="600"
         Background="#1E1E1E"
         BorderBrush="#3A3D44"
-        GotFocus="Window_GotFocus">
-        
-    <Grid Margin="10">
+        GotFocus="Window_GotFocus"
+        SizeToContent="Height">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+                CaptionHeight="0"
+                ResizeBorderThickness="5"
+                GlassFrameThickness="0"
+                UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+    <Grid 
+        Margin="10"
+        HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
         <TextBox
@@ -29,13 +40,16 @@
             Background="#26282C" 
             BorderBrush="#3A3D44"
             TextBlock.Foreground="#E7E7E7"
-            Grid.Row="0"/>
+            Grid.Row="0"
+            PreviewKeyDown="SearchBox_PreviewKeyDown"
+            />
         <TextBlock 
             IsHitTestVisible="False" 
             Text="Enter Search Term Here"
             Margin="5"
+            TextAlignment="Left"
             VerticalAlignment="Center" 
-            HorizontalAlignment="Left" 
+            HorizontalAlignment="Stretch" 
             Foreground="#B3B6BD">
             <TextBlock.Style>
                 <Style TargetType="{x:Type TextBlock}">
@@ -58,22 +72,16 @@
                 Background="#26282C"
                 BorderBrush="#3A3D44"
                 TextBlock.Foreground="#E7E7E7"
-                VerticalAlignment="Stretch"
                 x:Name="FoundFiles" 
                 ItemsSource="{Binding Results}" 
-                DisplayMemberPath="Name" 
-                HorizontalContentAlignment="Stretch">
-                <ListBox.Resources>
-                    <Style TargetType="ListBoxItem">
-                        <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick" />
-                    </Style>
-                </ListBox.Resources>
-            </ListBox>
-            <StackPanel 
-                Width="auto" 
+                DisplayMemberPath="Name"
                 Height="auto"
-                Grid.Column="1">
-            </StackPanel>
+                MinHeight="0"
+                MaxHeight="200"
+                HorizontalContentAlignment="Stretch"
+                SelectedItem="{Binding UserSelectedItem}"
+                ScrollViewer.VerticalScrollBarVisibility="Auto">
+            </ListBox>
         </Grid>
     </Grid>
 </Window>

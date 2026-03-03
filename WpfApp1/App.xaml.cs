@@ -27,6 +27,7 @@ namespace WpfApp1
             services.AddSingleton<FileCache>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<FilteringService>();
+            services.AddSingleton<IOServcie>();
         }
         private void ShowMainWindow()
         {
@@ -38,6 +39,7 @@ namespace WpfApp1
             base.OnStartup(e);
             var indexService = Services.GetRequiredService<IndexService>();
             var fileCacheService = Services.GetRequiredService<FileCache>();
+            var ioService = Services.GetRequiredService<IOServcie>();
 
             var cache = await indexService.LoadOrBuildAsync();
             if (cache is null)
